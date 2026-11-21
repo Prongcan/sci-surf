@@ -3,6 +3,8 @@ import os
 
 import requests
 
+from core.gemini_client import gemini_client_options
+
 logger = logging.getLogger(__name__)
 
 
@@ -53,7 +55,7 @@ def translate_text_gemini(text: str, api_key: str | None = None) -> str | None:
         return None
 
     try:
-        client = genai.Client(api_key=api_key)
+        client = genai.Client(api_key=api_key, **gemini_client_options())
         response = client.models.generate_content(
             model="gemini-3.5-flash-lite",
             contents=f"{_TRANSLATE_PROMPT}\n\nUser input:\n{text}",

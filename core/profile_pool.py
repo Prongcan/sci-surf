@@ -15,6 +15,7 @@ from pathlib import Path
 import yaml
 from google import genai
 
+from .gemini_client import gemini_client_options
 from .rerankers import GeminiProfileExtractor, GeminiRerankerPDF
 
 logger = logging.getLogger(__name__)
@@ -321,7 +322,7 @@ class ProfilePoolOptimizer:
         self.n_variants = n_variants
 
         api_key = _get_gemini_key()
-        self.client = genai.Client(api_key=api_key)
+        self.client = genai.Client(api_key=api_key, **gemini_client_options())
 
         # Load prompts and variants
         prompt_path = Path(__file__).parent / "prompts" / "rerank_prompts.yaml"

@@ -12,6 +12,8 @@ import yaml
 from google import genai
 from google.genai import types
 
+from core.gemini_client import gemini_client_options
+
 logger = logging.getLogger(__name__)
 
 
@@ -48,7 +50,7 @@ class GeminiReranker:
         api_key = os.getenv("GEMINI_API_KEY")
         if not api_key:
             raise ValueError("GEMINI_API_KEY environment variable is not set")
-        self.client = genai.Client(api_key=api_key)
+        self.client = genai.Client(api_key=api_key, **gemini_client_options())
         self.model_name = model_name
 
         prompt_path = Path(__file__).parent / "prompts" / "rerank_prompts.yaml"
@@ -104,7 +106,7 @@ class GeminiRerankerPDF:
         api_key = os.getenv("GEMINI_API_KEY")
         if not api_key:
             raise ValueError("GEMINI_API_KEY environment variable is not set")
-        self.client = genai.Client(api_key=api_key)
+        self.client = genai.Client(api_key=api_key, **gemini_client_options())
         self.model_name = model_name
         self.enable_thinking = enable_thinking
 
@@ -235,7 +237,7 @@ class GeminiProfileExtractor:
         api_key = os.getenv("GEMINI_API_KEY")
         if not api_key:
             raise ValueError("GEMINI_API_KEY environment variable is not set")
-        self.client = genai.Client(api_key=api_key)
+        self.client = genai.Client(api_key=api_key, **gemini_client_options())
         self.model_name = model_name
 
         prompt_path = Path(__file__).parent / "prompts" / "rerank_prompts.yaml"

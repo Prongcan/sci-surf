@@ -10,6 +10,7 @@ import yaml
 from google import genai
 from google.genai import types
 
+from core.gemini_client import gemini_client_options
 from core.models import DocSet
 
 logger = logging.getLogger(__name__)
@@ -126,7 +127,7 @@ class GeminiBlogGenerator_default:
             api_key = os.getenv("GEMINI_API_KEY")
         if not api_key:
             raise ValueError("GEMINI_API_KEY environment variable is not set")
-        self.client = genai.Client(api_key=api_key)
+        self.client = genai.Client(api_key=api_key, **gemini_client_options())
         self.model_name = model_name
         self.data_path = data_path
         self.output_path = output_path
@@ -253,7 +254,7 @@ class GeminiBlogGenerator_recommend:
             api_key = os.getenv("GEMINI_API_KEY")
         if not api_key:
             raise ValueError("GEMINI_API_KEY environment variable is not set")
-        self.client = genai.Client(api_key=api_key)
+        self.client = genai.Client(api_key=api_key, **gemini_client_options())
         self.model_name = model_name
         self.data_path = data_path
         self.output_path = output_path

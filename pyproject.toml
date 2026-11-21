@@ -26,6 +26,9 @@ dependencies = [
     "aiosmtplib",
     "slowapi",
     "cachetools",
+    "tqdm",
+    "psycopg2-binary",
+    "oss2",
 ]
 
 [project.optional-dependencies]
