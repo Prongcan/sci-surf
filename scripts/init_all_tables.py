@@ -247,8 +247,13 @@ def init_paper_database(config_path: str = None, drop_existing: bool = False):
                     doc_id VARCHAR(100) UNIQUE NOT NULL,
                     title TEXT,
                     abstract TEXT,
-                    embedding vector(1536)
+                    embedding vector(1536),
+                    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
                 )
+            """))
+            conn.execute(text("""
+                ALTER TABLE paper_embeddings
+                ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
             """))
 
             # Create indexes

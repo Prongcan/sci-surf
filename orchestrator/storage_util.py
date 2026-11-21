@@ -738,16 +738,42 @@ class EmbeddingClient:
         batch_size: int = 10,
         delay: float = 0.5
     ) -> List[Optional[List[float]]]:
-        """Batch get embeddings for multiple texts."""
+        """Get embeddings in API batches while preserving input order."""
+        if batch_size < 1:
+            raise ValueError("batch_size must be positive")
+        batch_size = min(batch_size, 10)
         embeddings = []
 
         for i in range(0, len(texts), batch_size):
             batch = texts[i:i + batch_size]
-            batch_embeddings = []
+            batch_embeddings: List[Optional[List[float]]] = [None] * len(batch)
+            valid = [(index, value) for index, value in enumerate(batch) if value and value.strip()]
 
-            for text in batch:
-                embedding = self.get_embedding(text)
-                batch_embeddings.append(embedding)
+            if valid:
+                try:
+                    response = httpx.post(
+                        f"{self.base_url}/embeddings",
+                        headers={"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"},
+                        json={
+                            "model": self.model,
+                            "input": [value for _, value in valid],
+                            "dimensions": self.dimension,
+                            "encoding_format": "float",
+                        },
+                        timeout=30.0,
+                    )
+                    response.raise_for_status()
+                    for item in response.json().get("data", []):
+                        position = item.get("index")
+                        vector = item.get("embedding")
+                        if isinstance(position, int) and 0 <= position < len(valid) and vector and len(vector) == self.dimension:
+                            batch_embeddings[valid[position][0]] = vector
+                except Exception as exc:
+                    self.logger.warning("Batch embedding request failed; retrying individual items: %s", exc)
+
+                for position, value in valid:
+                    if batch_embeddings[position] is None:
+                        batch_embeddings[position] = self.get_embedding(value)
 
             embeddings.extend(batch_embeddings)
 

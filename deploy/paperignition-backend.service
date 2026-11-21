@@ -1,0 +1,16 @@
+[Unit]
+Description=PaperIgnition FastAPI backend
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/scisurf/PaperIgnitionV1
+EnvironmentFile=/etc/paperignition/backend.env
+ExecStart=/opt/paperignition-venv/bin/uvicorn backend.app.main:app --host 127.0.0.1 --port 8000
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
