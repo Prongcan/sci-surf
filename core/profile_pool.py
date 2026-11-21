@@ -13,9 +13,8 @@ import uuid
 from pathlib import Path
 
 import yaml
-from google import genai
 
-from .gemini_client import gemini_client_options
+from .llm_client import create_llm_client
 from .rerankers import GeminiProfileExtractor, GeminiRerankerPDF
 
 logger = logging.getLogger(__name__)
@@ -311,7 +310,7 @@ class ProfilePoolOptimizer:
         evaluator: PoolEvaluator,
         pool_size: int = 5,
         max_mutations: int = 2,
-        model_name: str = "gemini-3.6-flash",
+        model_name: str = "gpt-6-luna",
         n_variants: int | None = None,
     ):
         self.extractor = extractor
@@ -321,8 +320,7 @@ class ProfilePoolOptimizer:
         self.model_name = model_name
         self.n_variants = n_variants
 
-        api_key = _get_gemini_key()
-        self.client = genai.Client(api_key=api_key, **gemini_client_options())
+        self.client = create_llm_client()
 
         # Load prompts and variants
         prompt_path = Path(__file__).parent / "prompts" / "rerank_prompts.yaml"
@@ -739,13 +737,3 @@ class ProfilePoolOptimizer:
             ]
 
         return result
-
-
-def _get_gemini_key() -> str:
-    """Get Gemini API key from environment."""
-    import os
-
-    key = os.getenv("GEMINI_API_KEY")
-    if not key:
-        raise ValueError("GEMINI_API_KEY environment variable is not set")
-    return key

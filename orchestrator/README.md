@@ -19,14 +19,14 @@ Stage 1: fetch_daily_papers
 Stage 2: generate_per_user_blogs (for each user)
   User interests ──► pgvector similarity search (retrieve_k=20 candidates)
        │
-       ├──► Rerank with Gemini (GeminiRerankerPDF or GeminiReranker)
+       ├──► Rerank with the configured Responses model
        │    └──► Select top_k=5 papers
        │
        ├──► [Lazy] Extract content for top_k papers only
        │    ├──► ar5iv HTML extraction (primary)
        │    └──► PDF + VolcEngine OCR (fallback)
        │
-       ├──► Generate personalized blog (Gemini)
+       ├──► Generate personalized blog (Responses)
        └──► Save recommendations to backend API
 ```
 
@@ -94,12 +94,12 @@ user_recommendation:
 ```yaml
 models:
   blog_generation:
-    model_id: gemini-3.5-flash-lite
+    model_id: gpt-6-luna
     rate_limits:
       rpm: 15
       rpd: 1500
   recommendation:
-    model_id: gemini-3.5-flash-lite
+    model_id: gpt-6-luna
     rate_limits:
       rpm: 10
       rpd: 1000
@@ -122,7 +122,7 @@ Set these in `.env` (sourced before running):
 | `APP_SERVICE_HOST` | Backend API URL (e.g. `http://localhost:8000`) |
 | `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME_PAPER` | Aliyun RDS PostgreSQL |
 | `DASHSCOPE_API_KEY`, `DASHSCOPE_BASE_URL` | DashScope embedding API |
-| `GEMINI_API_KEY` | Gemini LLM (blog generation + reranking) |
+| `OPENAI_API_KEY`, `BASE_URL` | Responses API for blogs, reranking, and profiles |
 | `ALIYUN_ACCESS_KEY_ID`, `ALIYUN_ACCESS_KEY_SECRET` | OSS image upload |
 | `VOLCENGINE_AK`, `VOLCENGINE_SK` | PDF OCR fallback (optional) |
 

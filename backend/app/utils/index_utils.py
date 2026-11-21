@@ -3,7 +3,7 @@ import os
 
 import requests
 
-from core.gemini_client import gemini_client_options
+from core.llm_client import create_llm_client
 
 logger = logging.getLogger(__name__)
 
@@ -45,22 +45,20 @@ When given an input in either Chinese or English:
 
 
 def translate_text_gemini(text: str, api_key: str | None = None) -> str | None:
-    """Translate/rewrite research interests to English using Gemini."""
-    from google import genai
-
+    """Translate/rewrite research interests to English using Responses."""
     if api_key is None:
-        api_key = os.getenv("GEMINI_API_KEY")
+        api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
-        logger.error("GEMINI_API_KEY not set, cannot translate")
+        logger.error("OPENAI_API_KEY not set, cannot translate")
         return None
 
     try:
-        client = genai.Client(api_key=api_key, **gemini_client_options())
+        client = create_llm_client(api_key=api_key)
         response = client.models.generate_content(
-            model="gemini-3.5-flash-lite",
+            model=os.getenv("OPENAI_MODEL", "gpt-6-luna"),
             contents=f"{_TRANSLATE_PROMPT}\n\nUser input:\n{text}",
         )
         return response.text.strip() if response.text else None
     except Exception as e:
-        logger.error(f"Gemini translation failed: {e}")
+        logger.error(f"Query translation failed: {e}")
         return None

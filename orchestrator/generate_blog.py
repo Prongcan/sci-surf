@@ -19,16 +19,16 @@ def run_Gemini_blog_generation_default(
 ):
     if model_config is None:
         model_config = {
-            "model_id": "gemini-2.5-flash-lite-preview-09-2025",
-            "api_key_env": "GEMINI_API_KEY",
+            "model_id": "gpt-6-luna",
+            "api_key_env": "OPENAI_API_KEY",
             "max_tokens": 8192,
             "temperature": 0.7
         }
 
-    api_key = os.getenv(model_config.get("api_key_env", "GEMINI_API_KEY"))
+    api_key = os.getenv(model_config.get("api_key_env", "OPENAI_API_KEY"))
 
     generator = GeminiBlogGenerator_default(
-        model_name=model_config.get("model_id", "gemini-2.5-flash-lite-preview-09-2025"),
+        model_name=model_config.get("model_id", "gpt-6-luna"),
         data_path="./imgs/",
         output_path=output_path,
         max_tokens=model_config.get("max_tokens", 8192),
@@ -52,16 +52,16 @@ def run_Gemini_blog_generation_recommend(
 ):
     if model_config is None:
         model_config = {
-            "model_id": "gemini-2.5-flash-preview-09-2025",
-            "api_key_env": "GEMINI_API_KEY",
+            "model_id": "gpt-6-luna",
+            "api_key_env": "OPENAI_API_KEY",
             "max_tokens": 4096,
             "temperature": 0.5
         }
 
-    api_key = os.getenv(model_config.get("api_key_env", "GEMINI_API_KEY"))
+    api_key = os.getenv(model_config.get("api_key_env", "OPENAI_API_KEY"))
 
     generator = GeminiBlogGenerator_recommend(
-        model_name=model_config.get("model_id", "gemini-2.5-flash-preview-09-2025"),
+        model_name=model_config.get("model_id", "gpt-6-luna"),
         data_path="./imgs/",
         output_path=output_path,
         max_tokens=model_config.get("max_tokens", 4096),

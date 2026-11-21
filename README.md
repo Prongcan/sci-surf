@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-PaperIgnitionV1 is a standalone AI-powered academic paper recommendation system (package: `paperignition` v1.0.0). It fetches papers from arXiv, indexes them with pgvector for semantic search, generates blog summaries using Gemini LLMs, and delivers personalized recommendations via a React SPA frontend.
+PaperIgnitionV1 is a standalone AI-powered academic paper recommendation system (package: `paperignition` v1.0.0). It fetches papers from arXiv, indexes them with pgvector for semantic search, generates blog summaries through an OpenAI Responses-compatible endpoint, and delivers personalized recommendations via a React SPA frontend.
 
 **Key difference from PaperIgnition(Beta):** V1 is fully standalone — no external `AIgnite` package dependency. All needed functionality is inlined in the `core/` package.
 
@@ -79,7 +79,7 @@ Secrets live in `.env` files (never in YAML). YAML configs use `${VAR_NAME}` syn
 Environment variables (see `.env.example`):
 - `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME_PAPER`, `DB_NAME_USER`
 - `DASHSCOPE_API_KEY`, `DASHSCOPE_BASE_URL`
-- `GEMINI_API_KEY`
+- `OPENAI_API_KEY`, `BASE_URL` — Responses-compatible model endpoint for summaries, reranking, profiles, and query rewriting. The configured model is `gpt-6-luna`.
 - `ALIYUN_ACCESS_KEY_ID`, `ALIYUN_ACCESS_KEY_SECRET`, `ALIYUN_OSS_ENDPOINT`, `ALIYUN_OSS_BUCKET`
 - `JWT_SECRET_KEY` — **required in production**; generates/signs JWT tokens. Must be a strong random string.
 - `SERVICE_TOKEN` — shared secret for orchestrator-to-backend auth. Required for orchestrator-facing endpoints.

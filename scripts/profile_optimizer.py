@@ -6,7 +6,7 @@ results to console and local files — never writes to the database.
 
 Usage:
     # Trajectory simulation (default): shows profile quality evolving over time
-    GEMINI_API_KEY=... python scripts/profile_optimizer.py --user "Qi Zhu"
+    OPENAI_API_KEY=... python scripts/profile_optimizer.py --user "Qi Zhu"
 
     # Full pool optimization on all data (single run)
     python scripts/profile_optimizer.py --user "Qi Zhu" --full
@@ -18,7 +18,7 @@ Usage:
     python scripts/profile_optimizer.py --user "Qi Zhu" --no-eval
 
     # Use a specific model
-    python scripts/profile_optimizer.py --user "Qi Zhu" --model gemini-3.6-flash
+    python scripts/profile_optimizer.py --user "Qi Zhu" --model gpt-6-luna
 
     # Write results to file
     python scripts/profile_optimizer.py --user "Qi Zhu" --output results/qi_zhu_pool.json
@@ -52,7 +52,6 @@ __all__ = ["fetch_recommendations_from_db", "build_sessions", "find_like_milesto
 # 1. Quiet down noisy libraries
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("google").setLevel(logging.WARNING)
-logging.getLogger("google.genai").setLevel(logging.ERROR)  # Suppresses 'thought_signature' warnings
 logging.getLogger("urllib3").setLevel(logging.WARNING)
 
 # 2. Add custom filter to catch specific SDK warnings that skip the logger level
@@ -453,8 +452,8 @@ def run_trajectory(
 def main():
     parser = argparse.ArgumentParser(description="Standalone profile pool optimizer (no DB writes)")
     parser.add_argument("--user", required=True, help="Username to optimize profile for")
-    parser.add_argument("--model", default="gemini-3.6-flash", help="Gemini model (default: gemini-3.6-flash)")
-    parser.add_argument("--eval-model", default="gemini-3.5-flash-lite", help="Gemini model used for evaluation (default: gemini-3.5-flash-lite)")
+    parser.add_argument("--model", default="gpt-6-luna", help="Generation model (default: gpt-6-luna)")
+    parser.add_argument("--eval-model", default="gpt-6-luna", help="Evaluation model (default: gpt-6-luna)")
     parser.add_argument("--max-papers", type=int, default=50, help="Max papers for training in --full mode (default: 50)")
     parser.add_argument("--max-val-bins", type=int, default=30, help="Max history bins for evaluation per checkpoint (default: 30)")
     parser.add_argument("--pool-size", type=int, default=3, help="Max pool size (default: 3)")
@@ -470,8 +469,11 @@ def main():
     parser.add_argument("--write-db", action="store_true", help="Write final pool to database via backend API (pool + boost history)")
     args = parser.parse_args()
 
-    if not os.getenv("GEMINI_API_KEY"):
-        print("Error: GEMINI_API_KEY environment variable required")
+    from dotenv import load_dotenv
+
+    load_dotenv(project_root / ".env", override=False)
+    if not os.getenv("OPENAI_API_KEY"):
+        print("Error: OPENAI_API_KEY environment variable required")
         sys.exit(1)
 
     mode = "full" if args.full else "trajectory"

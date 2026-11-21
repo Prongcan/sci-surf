@@ -436,7 +436,7 @@ class PaperIgnitionOrchestrator:
 
         customized_rerank = self.orch_config["user_recommendation"].get("customized_recommendation", False)
         if customized_rerank:
-            recommendation_model_id = self.orch_config.get("models", {}).get("recommendation", {}).get("model_id", "gemini-2.5-pro")
+            recommendation_model_id = self.orch_config.get("models", {}).get("recommendation", {}).get("model_id", "gpt-6-luna")
             use_pdf = self.orch_config["user_recommendation"].get("use_pdf_reranker", True)
             if use_pdf:
                 customized_reranker = GeminiRerankerPDF(model_name=recommendation_model_id)
@@ -653,7 +653,7 @@ class PaperIgnitionOrchestrator:
                 logging.info(f"No target users ({self.user_filter}) with boost requested — skipping.")
                 return
 
-        model_id = self.orch_config.get("models", {}).get("profile_extraction", {}).get("model_id", "gemini-3.6-flash")
+        model_id = self.orch_config.get("models", {}).get("profile_extraction", {}).get("model_id", "gpt-6-luna")
         pool_config = self.orch_config.get("profile_pool", {})
         pool_enabled = pool_config.get("enabled", True)
         max_papers = pool_config.get("max_papers", 50)

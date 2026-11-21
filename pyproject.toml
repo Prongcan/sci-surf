@@ -12,7 +12,6 @@ dependencies = [
     "python-jose[cryptography]",
     "pwdlib[bcrypt,argon2]",
     "python-dotenv",
-    "google-genai",
     "httpx",
     "tenacity",
     "pyyaml",

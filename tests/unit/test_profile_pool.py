@@ -254,8 +254,7 @@ class TestPoolEvaluator:
 
 def _mock_optimizer():
     """Create optimizer with mocked Gemini client (no real API calls)."""
-    with patch("core.profile_pool.genai.Client"), \
-         patch("core.profile_pool._get_gemini_key", return_value="fake-key"):
+    with patch("core.profile_pool.create_llm_client"):
         extractor = MagicMock()
         extractor._default_profile.return_value = {
             "persona_definition": "Default profile.",
@@ -442,8 +441,7 @@ class TestPoolDynamicEvolution:
     """Test the full feedback loop: eval scores drive mutation selection + Pareto."""
 
     def _setup_optimizer(self):
-        with patch("core.profile_pool.genai.Client"), \
-             patch("core.profile_pool._get_gemini_key", return_value="fake-key"):
+        with patch("core.profile_pool.create_llm_client"):
             extractor = MagicMock()
             extractor._default_profile.return_value = {
                 "persona_definition": "Default profile.",

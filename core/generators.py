@@ -1,4 +1,4 @@
-"""Blog generators using Google Gemini models."""
+"""Blog generators using the configured Responses model."""
 
 import concurrent.futures
 import logging
@@ -7,10 +7,8 @@ import time
 from typing import List
 
 import yaml
-from google import genai
-from google.genai import types
 
-from core.gemini_client import gemini_client_options
+from core.llm_client import create_llm_client, pdf_part
 from core.models import DocSet
 
 logger = logging.getLogger(__name__)
@@ -107,11 +105,11 @@ def format_blog_prompt(
 
 
 class GeminiBlogGenerator_default:
-    """Generate blog posts for all papers using Gemini (batch/default mode)."""
+    """Generate blog posts for all papers (legacy class name)."""
 
     def __init__(
         self,
-        model_name="gemini-2.5-flash-lite-preview-09-2025",
+        model_name="gpt-6-luna",
         data_path="./output",
         output_path="./experiments/output",
         input_format="pdf",
@@ -124,10 +122,10 @@ class GeminiBlogGenerator_default:
         language="zh",
     ):
         if api_key is None:
-            api_key = os.getenv("GEMINI_API_KEY")
+            api_key = os.getenv("OPENAI_API_KEY")
         if not api_key:
-            raise ValueError("GEMINI_API_KEY environment variable is not set")
-        self.client = genai.Client(api_key=api_key, **gemini_client_options())
+            raise ValueError("OPENAI_API_KEY environment variable is not set")
+        self.client = create_llm_client(api_key=api_key)
         self.model_name = model_name
         self.data_path = data_path
         self.output_path = output_path
@@ -190,7 +188,7 @@ class GeminiBlogGenerator_default:
                 contents = [prompt]
                 if input_format == "pdf" and pdf_data:
                     contents.append(
-                        types.Part.from_bytes(data=pdf_data, mime_type="application/pdf")
+                        pdf_part(pdf_data)
                     )
 
                 response = self.client.models.generate_content(
@@ -238,7 +236,7 @@ class GeminiBlogGenerator_recommend:
 
     def __init__(
         self,
-        model_name="gemini-2.5-flash-preview-09-2025",
+        model_name="gpt-6-luna",
         data_path="./output",
         output_path="./experiments/output",
         input_format="pdf",
@@ -251,10 +249,10 @@ class GeminiBlogGenerator_recommend:
         language="zh",
     ):
         if api_key is None:
-            api_key = os.getenv("GEMINI_API_KEY")
+            api_key = os.getenv("OPENAI_API_KEY")
         if not api_key:
-            raise ValueError("GEMINI_API_KEY environment variable is not set")
-        self.client = genai.Client(api_key=api_key, **gemini_client_options())
+            raise ValueError("OPENAI_API_KEY environment variable is not set")
+        self.client = create_llm_client(api_key=api_key)
         self.model_name = model_name
         self.data_path = data_path
         self.output_path = output_path
@@ -323,7 +321,7 @@ class GeminiBlogGenerator_recommend:
                 contents = [prompt]
                 if input_format == "pdf" and pdf_data:
                     contents.append(
-                        types.Part.from_bytes(data=pdf_data, mime_type="application/pdf")
+                        pdf_part(pdf_data)
                     )
 
                 response = self.client.models.generate_content(

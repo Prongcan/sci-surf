@@ -20,3 +20,11 @@
 - The working text model is `gpt-6-luna`; PDF input and model-specific generation parameters need separate validation.
 - A text-only fallback must retain paper IDs, ordering, and parser output expected by recommendation and profile code.
 - Do not commit credentials or print them in logs. Recheck Git status and diff before committing migration changes.
+
+## Result
+
+- Added `core/llm_client.py` as the common Responses transport. All generation, reranking, profile, and query-translation calls now use it. The existing public `Gemini*` class names remain as compatibility names for callers.
+- Both development and production orchestrator configs now use the verified `gpt-6-luna` model. DashScope embedding and PostgreSQL vector configuration are unchanged.
+- Live smoke requests through the adapter returned `OK` for text and `ORBIT-42` from a generated PDF. The gateway accepted `input_file` for the tested single-page PDF, so no text-only fallback was needed.
+- `PAPERIGNITION_LOCAL_MODE=true pytest tests/unit tests/integration -q`: 149 passed. Ruff passed for modified Python files.
+- The adapter does not expose Gemini thought summaries; the PDF reranker continues returning an empty summary in the existing tuple shape. Larger production PDFs have not been exercised through the gateway.

@@ -1,18 +1,15 @@
-"""LLM-based rerankers using Google Gemini models."""
+"""LLM-based rerankers using the configured Responses model."""
 
 from __future__ import annotations
 
 import io
 import logging
-import os
 import re
 from pathlib import Path
 
 import yaml
-from google import genai
-from google.genai import types
 
-from core.gemini_client import gemini_client_options
+from core.llm_client import create_llm_client, pdf_part
 
 logger = logging.getLogger(__name__)
 
@@ -44,13 +41,10 @@ def extract_first_page_pdf(pdf_path: str | Path) -> bytes | None:
 
 
 class GeminiReranker:
-    """Rerank retrieved documents using Gemini with text input."""
+    """Rerank retrieved documents with text input (legacy class name)."""
 
-    def __init__(self, model_name="gemini-2.5-pro", prompt_key="blog_rerank_prompt"):
-        api_key = os.getenv("GEMINI_API_KEY")
-        if not api_key:
-            raise ValueError("GEMINI_API_KEY environment variable is not set")
-        self.client = genai.Client(api_key=api_key, **gemini_client_options())
+    def __init__(self, model_name="gpt-6-luna", prompt_key="blog_rerank_prompt"):
+        self.client = create_llm_client()
         self.model_name = model_name
 
         prompt_path = Path(__file__).parent / "prompts" / "rerank_prompts.yaml"
@@ -94,19 +88,16 @@ class GeminiReranker:
 
 
 class GeminiRerankerPDF:
-    """Rerank documents using Gemini with PDF first-page support."""
+    """Rerank documents with PDF first-page support (legacy class name)."""
 
     def __init__(
         self,
         prompt_path=None,
-        model_name="gemini-2.5-pro",
+        model_name="gpt-6-luna",
         prompt_key="blog_rerank_pdf_prompt",
         enable_thinking=True,
     ):
-        api_key = os.getenv("GEMINI_API_KEY")
-        if not api_key:
-            raise ValueError("GEMINI_API_KEY environment variable is not set")
-        self.client = genai.Client(api_key=api_key, **gemini_client_options())
+        self.client = create_llm_client()
         self.model_name = model_name
         self.enable_thinking = enable_thinking
 
@@ -144,7 +135,7 @@ class GeminiRerankerPDF:
 
                 documents_text_parts.append(f"\n=== Document ID: {doc_id} ===\n")
                 documents_text_parts.append(
-                    types.Part.from_bytes(data=first_page_pdf, mime_type="application/pdf")
+                    pdf_part(first_page_pdf)
                 )
             except Exception as e:
                 logger.warning("Failed to process PDF %s: %s", pdf_path, e)
@@ -179,26 +170,12 @@ class GeminiRerankerPDF:
 
         for attempt in range(max_retries):
             try:
-                config_params = {}
-                if self.enable_thinking:
-                    config_params["thinking_config"] = types.ThinkingConfig(include_thoughts=True)
-
                 response = self.client.models.generate_content(
                     model=self.model_name,
-                    config=types.GenerateContentConfig(**config_params) if config_params else None,
                     contents=contents,
                 )
 
                 thought_summary = ""
-                if self.enable_thinking:
-                    if hasattr(response, "candidates") and len(response.candidates) > 0:
-                        candidate = response.candidates[0]
-                        if hasattr(candidate, "content") and hasattr(candidate.content, "parts"):
-                            for part in candidate.content.parts:
-                                if hasattr(part, "thought") and part.thought:
-                                    thought_summary = part.text
-                                    logger.info("Thought summary captured (%d chars)", len(thought_summary))
-                                    break
 
                 doc_ids = self._parse_document_ids(response.text)
                 return doc_ids[:top_k], thought_summary
@@ -233,11 +210,8 @@ class GeminiProfileExtractor:
     ranking_heuristics).
     """
 
-    def __init__(self, model_name: str = "gemini-2.5-flash", prompt_key: str = "profile_extraction_prompt"):
-        api_key = os.getenv("GEMINI_API_KEY")
-        if not api_key:
-            raise ValueError("GEMINI_API_KEY environment variable is not set")
-        self.client = genai.Client(api_key=api_key, **gemini_client_options())
+    def __init__(self, model_name: str = "gpt-6-luna", prompt_key: str = "profile_extraction_prompt"):
+        self.client = create_llm_client()
         self.model_name = model_name
 
         prompt_path = Path(__file__).parent / "prompts" / "rerank_prompts.yaml"
@@ -325,7 +299,7 @@ class GeminiProfileExtractor:
                     if first_page is None:
                         continue
                     contents.append(f"\n[Paper ID: {paper_id}] - LIKED")
-                    contents.append(types.Part.from_bytes(data=first_page, mime_type="application/pdf"))
+                    contents.append(pdf_part(first_page))
                     paper_count += 1
 
             if negatives and paper_count < max_papers:
@@ -340,7 +314,7 @@ class GeminiProfileExtractor:
                     if first_page is None:
                         continue
                     contents.append(f"\n[Paper ID: {paper_id}] - NOT LIKED")
-                    contents.append(types.Part.from_bytes(data=first_page, mime_type="application/pdf"))
+                    contents.append(pdf_part(first_page))
                     paper_count += 1
 
         logger.info("Built profile extraction contents with %d PDF pages", paper_count)
