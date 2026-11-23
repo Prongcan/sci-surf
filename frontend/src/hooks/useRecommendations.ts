@@ -1,15 +1,15 @@
 import { useQuery } from '@tanstack/react-query'
-import { getRecommendations, type RecommendedPaper } from '../api/digests'
+import { getFeaturedPapers, getRecommendations, type RecommendedPaper } from '../api/digests'
 import { useAuthStore } from '../stores/auth'
-import { DEFAULT_FEED_USER } from '../lib/constants'
 
 export function useRecommendations() {
   const user = useAuthStore((s) => s.user)
-  const username = user?.username || DEFAULT_FEED_USER
+  const isLoggedIn = useAuthStore((s) => s.isLoggedIn)
+  const username = user?.username
 
   return useQuery<RecommendedPaper[]>({
-    queryKey: ['recommendations', username],
-    queryFn: () => getRecommendations(username),
+    queryKey: ['recommendations', isLoggedIn ? username : 'featured'],
+    queryFn: () => isLoggedIn && username ? getRecommendations(username) : getFeaturedPapers(),
     staleTime: 5 * 60 * 1000,
   })
 }

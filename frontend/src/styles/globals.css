@@ -5,8 +5,9 @@
 
 @theme {
   --font-sans: 'Inter', 'Noto Sans', ui-sans-serif, system-ui, sans-serif;
-  --color-brand: #dc2626;
-  --color-brand-dark: #b91c1c;
+  --color-brand: #0A6FFF;
+  --color-brand-dark: #005DD9;
+  --color-brand-soft: #E6F2FF;
 }
 
 /* KaTeX overrides */

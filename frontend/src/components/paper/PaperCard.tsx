@@ -54,8 +54,12 @@ export function PaperCard({ paper }: PaperCardProps) {
       <div className="mt-4 flex items-center justify-between">
         <div className="flex items-center gap-3 text-xs text-gray-400 dark:text-gray-500">
           <span>Published {formatDate(paper.submitted)}</span>
-          <span className="text-gray-300 dark:text-gray-700">|</span>
-          <span>Recommended {formatDate(paper.recommendation_date)}</span>
+          {isLoggedIn && (
+            <>
+              <span className="text-gray-300 dark:text-gray-700">|</span>
+              <span>Recommended {formatDate(paper.recommendation_date)}</span>
+            </>
+          )}
           <a
             href={paper.url}
             target="_blank"

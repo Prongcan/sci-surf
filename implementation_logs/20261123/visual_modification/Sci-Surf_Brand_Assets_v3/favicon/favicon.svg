@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="24 20 208 216" width="256" height="256" role="img" aria-labelledby="title">
+<title id="title">Sci-Surf</title>
+<path d="M 189 57 C 165 43 127 47 95 64 C 66 79 52 101 65 116 C 77 131 103 123 132 114 C 163 103 191 114 186 137 C 182 156 150 177 118 191 C 97 200 76 207 55 210" fill="none" stroke="#0A6FFF" stroke-width="29" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 56 229 Q 126 211 202 212" fill="none" stroke="#4DB8FF" stroke-width="8" stroke-linecap="round"/>
+<path d="M 174 203 Q 193 196 215 201" fill="none" stroke="#FF8A00" stroke-width="6" stroke-linecap="round"/>
+</svg>

@@ -82,9 +82,9 @@ export function Header() {
 
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-0.5 text-xl font-bold">
-            <span className="text-gray-900 dark:text-white">Paper</span>
-            <span className="text-brand">Ignition</span>
+          <Link to="/" className="flex items-center" aria-label="Sci-Surf home">
+            <img src="/brand/sci-surf-logo-light.png" alt="Sci-Surf" className="block h-10 w-auto object-contain md:h-11 dark:hidden" />
+            <img src="/brand/sci-surf-logo-dark.png" alt="" aria-hidden="true" className="hidden h-10 w-auto object-contain md:h-11 dark:block" />
           </Link>
 
           {/* Desktop nav */}
