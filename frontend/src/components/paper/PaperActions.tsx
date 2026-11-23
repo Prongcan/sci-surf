@@ -40,7 +40,7 @@ export function PaperActions({ paperId, blogLiked, paper }: PaperActionsProps) {
         onClick={(e) => { e.stopPropagation(); handleLike() }}
         className={`rounded-lg p-1.5 transition-colors cursor-pointer ${
           blogLiked === true
-            ? 'text-brand bg-red-50 dark:bg-red-900/20'
+            ? 'text-brand bg-brand-soft dark:bg-blue-900/20'
             : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
         }`}
         aria-label="Like"
