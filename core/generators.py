@@ -62,7 +62,7 @@ def _format_figure_info(figure_chunks, data_path: str) -> str:
             fig_num = title.split("_figure")[-1]
 
         # Always use {title}.png — matches OSS naming convention (e.g. 2501.01234_Figure1.png)
-        # The backend rewrites ./imgs/xxx.png to http://oss.paperignition.com/imgs/xxx.png
+        # The backend rewrites ./imgs/xxx.png to the public /imgs/ address.
         img_filename = f"{title}.png" if title else ""
 
         caption_text = caption[:200] if caption else "No caption"
@@ -142,7 +142,7 @@ class GeminiBlogGenerator_default:
             self._generate_single_blog(paper, input_format)
             time.sleep(5)
 
-        max_workers = min(len(papers), 50)
+        max_workers = min(len(papers), 2)
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = [executor.submit(generate_with_delay, paper) for paper in papers]
             for future in concurrent.futures.as_completed(futures):
@@ -269,7 +269,8 @@ class GeminiBlogGenerator_recommend:
             self._generate_single_blog(paper, input_format)
             time.sleep(5)
 
-        max_workers = min(len(papers), 50)
+        # Bound concurrent PDF requests; each request can take over a minute.
+        max_workers = min(len(papers), 2)
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
             paper_to_future = {
                 i: (paper, executor.submit(generate_with_delay, paper))

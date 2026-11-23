@@ -600,5 +600,120 @@ class PDFExtractor_baidu(PDFExtractorBase):
         return match.group(1).strip() if match else ""
 
 
+class PDFExtractor_baidu_vl(PDFExtractorBase):
+    """Baidu Cloud PaddleOCR-VL asynchronous document parsing API."""
+
+    TASK_URL = "https://aip.baidubce.com/rest/2.0/brain/online/v2/paddle-vl-parser/task"
+    TOKEN_URL = "https://aip.baidubce.com/oauth/2.0/token"
+
+    def __init__(self, api_key: str, secret_key: str, max_pages: int = 16,
+                 poll_interval: int = 5, max_wait: int = 300):
+        super().__init__(max_pages=max_pages)
+        self.api_key = api_key
+        self.secret_key = secret_key
+        self.poll_interval = poll_interval
+        self.max_wait = max_wait
+        self._parse_result: dict = {}
+
+    @staticmethod
+    def _api_result(response):
+        response.raise_for_status()
+        data = response.json()
+        if int(data.get("error_code", 0)) != 0:
+            raise RuntimeError(f"Baidu OCR error {data['error_code']}: {data.get('error_msg', '')}")
+        return data["result"]
+
+    def _pdf_to_markdown(self, pdf_path: Path) -> str | None:
+        import requests
+
+        self._trim_pdf_pages(pdf_path)
+        self._compress_pdf_if_needed(pdf_path)
+        token_response = requests.post(
+            self.TOKEN_URL,
+            params={"grant_type": "client_credentials", "client_id": self.api_key,
+                    "client_secret": self.secret_key}, timeout=30,
+        )
+        token_response.raise_for_status()
+        token_data = token_response.json()
+        token = token_data.get("access_token")
+        if not token:
+            raise RuntimeError(f"Baidu OAuth failed: {token_data.get('error_description', 'no access_token')}")
+
+        import base64
+        task = self._api_result(requests.post(
+            self.TASK_URL, params={"access_token": token},
+            data={"file_data": base64.b64encode(pdf_path.read_bytes()).decode("ascii"),
+                  "file_name": pdf_path.name, "analysis_chart": "false"}, timeout=60,
+        ))
+        task_id = task["task_id"]
+        logger.info("Baidu OCR task submitted for %s: %s", pdf_path.name, task_id)
+        deadline = time.monotonic() + self.max_wait
+        while time.monotonic() < deadline:
+            time.sleep(self.poll_interval)
+            result = self._api_result(requests.post(
+                f"{self.TASK_URL}/query", params={"access_token": token},
+                data={"task_id": task_id}, timeout=30,
+            ))
+            status = result.get("status")
+            logger.info("Baidu OCR task %s status: %s", task_id, status)
+            if status == "failed":
+                raise RuntimeError(f"Baidu OCR task failed: {result.get('task_error')}")
+            if status == "success":
+                markdown_response = requests.get(result["markdown_url"], timeout=60)
+                markdown_response.raise_for_status()
+                parse_response = requests.get(result["parse_result_url"], timeout=60)
+                parse_response.raise_for_status()
+                self._parse_result = parse_response.json()
+                return markdown_response.text
+            if status not in ("pending", "running"):
+                raise RuntimeError(f"Unknown Baidu OCR task status: {status}")
+        raise TimeoutError(f"Baidu OCR task timed out after {self.max_wait}s")
+
+    def _parse_figures(self, markdown: str, doc_id: str, image_dir: Path) -> list[FigureChunk]:
+        import requests
+
+        figures = []
+        image_dir.mkdir(parents=True, exist_ok=True)
+        for page in self._parse_result.get("pages", []):
+            layouts = page.get("layouts", [])
+            captions = [item.get("text", "") for item in layouts
+                        if item.get("type") == "figure_title"]
+            for index, image in enumerate(page.get("images", []), 1):
+                url = image.get("data_url")
+                if not url:
+                    continue
+                name = f"{doc_id}_Figure{page.get('page_num', 0) + 1}_{index}"
+                path = image_dir / f"{name}.png"
+                try:
+                    response = requests.get(url, timeout=30)
+                    response.raise_for_status()
+                    path.write_bytes(response.content)
+                except requests.RequestException as exc:
+                    logger.warning("Failed to download figure %s: %s", name, exc)
+                    continue
+                figures.append(FigureChunk(title=name, image_path=str(path),
+                                           caption=captions[index - 1] if index <= len(captions) else "",
+                                           alt_text="Refer to caption"))
+        return figures
+
+    def _parse_text(self, markdown: str) -> list[TextChunk]:
+        chunks = [
+            TextChunk(id=f"text_{index}", title=f"Page {index}", text=page["text"])
+            for index, page in enumerate(self._parse_result.get("pages", []), 1)
+            if page.get("text")
+        ]
+        return chunks or [TextChunk(id="text_1", title="Document", text=markdown)]
+
+    def _parse_tables(self, markdown: str) -> list[TableChunk]:
+        tables = []
+        for page in self._parse_result.get("pages", []):
+            for table in page.get("tables", []):
+                if table.get("markdown"):
+                    tables.append(TableChunk(id=table.get("layout_id"),
+                                             title=f"Table {len(tables) + 1}",
+                                             table_html=table["markdown"]))
+        return tables
+
+
 # Default alias for backward compatibility
 PDFExtractor = PDFExtractor_baidu

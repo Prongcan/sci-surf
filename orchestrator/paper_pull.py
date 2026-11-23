@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, List, Optional
 from zoneinfo import ZoneInfo
 
 from core.arxiv import ArxivClient, download_pdf
-from core.arxiv.pdf_extractor import PDFExtractor_baidu
+from core.arxiv.pdf_extractor import PDFExtractor_baidu, PDFExtractor_baidu_vl
 from core.models import DocSet
 
 if TYPE_CHECKING:
@@ -68,6 +68,8 @@ class PaperPullService:
         # Baidu OCR credentials for PDF OCR
         self.baidu_ocr_url = baidu_ocr_url or os.getenv("BAIDU_OCR_URL", "")
         self.baidu_ocr_token = baidu_ocr_token or os.getenv("BAIDU_OCR_TOKEN", "")
+        self.baidu_ocr_api_key = os.getenv("BAIDU_OCR_API_KEY", "")
+        self.baidu_ocr_secret_key = os.getenv("BAIDU_OCR_SECRET_KEY", "")
 
         self._setup_directories()
 
@@ -109,7 +111,8 @@ class PaperPullService:
         doc_id = paper.doc_id
 
         # PDF OCR
-        if not self.baidu_ocr_url or not self.baidu_ocr_token:
+        use_vl = bool(self.baidu_ocr_api_key and self.baidu_ocr_secret_key)
+        if not use_vl and (not self.baidu_ocr_url or not self.baidu_ocr_token):
             self.logger.warning("No Baidu OCR credentials, skipping PDF OCR extraction for %s", doc_id)
             return paper
 
@@ -117,10 +120,16 @@ class PaperPullService:
         pdf_path = download_pdf(pdf_url, self.pdf_folder_path, f"{doc_id}.pdf")
         if pdf_path:
             try:
-                pdf_extractor = PDFExtractor_baidu(
-                    api_url=self.baidu_ocr_url,
-                    api_token=self.baidu_ocr_token,
-                )
+                if use_vl:
+                    pdf_extractor = PDFExtractor_baidu_vl(
+                        api_key=self.baidu_ocr_api_key,
+                        secret_key=self.baidu_ocr_secret_key,
+                    )
+                else:
+                    pdf_extractor = PDFExtractor_baidu(
+                        api_url=self.baidu_ocr_url,
+                        api_token=self.baidu_ocr_token,
+                    )
                 text_chunks, figure_chunks, table_chunks = pdf_extractor.extract(
                     pdf_path, doc_id, str(self.image_folder_path)
                 )

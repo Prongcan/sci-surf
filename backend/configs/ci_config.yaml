@@ -9,7 +9,7 @@ USER_DB:
   db_name: ci_user_db
 
 dashscope:
-  api_key: fake-key-for-ci
+  api_key: ${DASHSCOPE_API_KEY}
   base_url: https://dashscope.aliyuncs.com/compatible-mode/v1
   embedding_model: text-embedding-v4
   embedding_dimension: 1536

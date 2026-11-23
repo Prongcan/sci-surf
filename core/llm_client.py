@@ -11,10 +11,11 @@ from openai import OpenAI
 class PDFPart:
     data: bytes
     filename: str = "paper.pdf"
+    detail: str = "high"
 
 
-def pdf_part(data: bytes, filename: str = "paper.pdf") -> PDFPart:
-    return PDFPart(data=data, filename=filename)
+def pdf_part(data: bytes, filename: str = "paper.pdf", detail: str = "high") -> PDFPart:
+    return PDFPart(data=data, filename=filename, detail=detail)
 
 
 @dataclass
@@ -47,6 +48,7 @@ class ResponsesModelAdapter:
                     "type": "input_file",
                     "filename": part.filename,
                     "file_data": f"data:application/pdf;base64,{encoded}",
+                    "detail": part.detail,
                 })
             elif isinstance(part, str):
                 content.append({"type": "input_text", "text": part})
@@ -88,4 +90,13 @@ def create_llm_client(api_key: str | None = None) -> LLMClient:
     headers = {}
     if "api.smilecodex.space" in base_url:
         headers["x-openai-actor-authorization"] = "local-image-extension"
-    return LLMClient(OpenAI(api_key=api_key, base_url=base_url, default_headers=headers, timeout=60, max_retries=0))
+    timeout_seconds = float(os.getenv("OPENAI_TIMEOUT_SECONDS", "180"))
+    if timeout_seconds <= 0:
+        raise ValueError("OPENAI_TIMEOUT_SECONDS must be positive")
+    return LLMClient(OpenAI(
+        api_key=api_key,
+        base_url=base_url,
+        default_headers=headers,
+        timeout=timeout_seconds,
+        max_retries=0,
+    ))

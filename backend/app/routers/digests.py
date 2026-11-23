@@ -186,7 +186,7 @@ async def _process_markdown_images(markdown_content: str) -> str:
 
     def replace_image_path(match):
         filename = match.group(1)
-        new_url = f"http://oss.paperignition.com/imgs/{filename}"
+        new_url = f"http://8.130.190.218/imgs/{filename}"
         return f"({new_url})"
 
     pattern1 = r'\(\.\/imgs\/\/(.*?\.png)\)'   # ./imgs//xxx.png

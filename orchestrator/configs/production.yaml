@@ -10,7 +10,7 @@ paper_pull:
   location: cloud
   count_delay: 2
   max_papers: null
-  lazy_mode: true  # metadata only on fetch; extract content only for recommended papers
+  lazy_mode: true  # metadata/embedding fetch; extract PDFs only for selected blog papers
 
 blog_generation:
   output_path: orchestrator/blogsByGemini
@@ -22,7 +22,7 @@ user_recommendation:
   search_strategy: vector
   search_days: 5
   customized_recommendation: true
-  use_pdf_reranker: true
+  use_pdf_reranker: false  # fallback to abstract reranking when arXiv PDFs are unavailable
   user_retrieve_result: true
 
 models:
