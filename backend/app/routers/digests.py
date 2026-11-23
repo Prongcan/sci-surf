@@ -14,6 +14,7 @@ from fastapi.security import HTTPAuthorizationCredentials
 from fastapi.security.utils import get_authorization_scheme_param
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy import text
 
 from ..auth.utils import (
     _service_token_matches,
@@ -22,7 +23,7 @@ from ..auth.utils import (
     verify_owner_or_service,
     verify_service_token,
 )
-from ..db_utils import get_db
+from ..db_utils import get_db, get_paper_db
 from ..models.papers import FeedbackRequest, PaperBase, PaperRecommendation, RetrieveResultSave
 from ..models.users import User, UserPaperRecommendation, UserRetrieveResult
 
@@ -30,8 +31,37 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/digests", tags=["digests"])
 
-
 # ==================== Recommendations ====================
+
+@router.get("/featured", response_model=List[PaperBase])
+async def get_featured_papers(
+    limit: int = 50,
+    db: AsyncSession = Depends(get_paper_db),
+):
+    """Public papers with generated digests, without user recommendation state."""
+    limit = max(1, min(limit, 50))
+    result = await db.execute(
+        text("""
+            SELECT doc_id, title, authors, abstract, published_date
+            FROM papers
+            WHERE blog IS NOT NULL AND blog <> ''
+            ORDER BY published_date DESC NULLS LAST, doc_id DESC
+            LIMIT :limit
+        """),
+        {"limit": limit},
+    )
+    return [
+        PaperBase(
+            id=paper_id or "",
+            title=title or "",
+            authors=", ".join(authors) if isinstance(authors, list) else (authors or ""),
+            abstract=abstract or "",
+            url=f"https://arxiv.org/pdf/{paper_id}",
+            submitted=str(published_at) if published_at else None,
+            recommendation_date=None,
+        )
+        for paper_id, title, authors, abstract, published_at in result.all()
+    ]
 
 @router.get("/recommendations/{username}", response_model=List[PaperBase])
 async def get_recommended_papers_info(

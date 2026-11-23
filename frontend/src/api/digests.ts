@@ -21,6 +21,10 @@ export function getRecommendations(
   )
 }
 
+export function getFeaturedPapers(limit = 50): Promise<RecommendedPaper[]> {
+  return api.get<RecommendedPaper[]>(`/api/digests/featured?limit=${limit}`)
+}
+
 export function getBlogContent(paperId: string, username: string): Promise<string> {
   return api.get<string>(
     `/api/digests/blog_content/${encodeURIComponent(paperId)}/${encodeURIComponent(username)}`,

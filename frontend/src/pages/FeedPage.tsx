@@ -140,7 +140,9 @@ export function FeedPage() {
           {/* Empty state */}
           {papers.length === 0 && (
             <div className="py-16 text-center">
-              <p className="text-gray-500 dark:text-gray-400">No papers found.</p>
+              <p className="text-gray-500 dark:text-gray-400">
+                {isLoggedIn ? 'No papers found.' : 'No featured papers are available yet.'}
+              </p>
             </div>
           )}
         </div>
