@@ -22,7 +22,7 @@ user_recommendation:
   search_strategy: vector
   search_days: 5
   customized_recommendation: true
-  use_pdf_reranker: false  # fallback to abstract reranking when arXiv PDFs are unavailable
+  use_pdf_reranker: true
   user_retrieve_result: true
 
 models:
