@@ -13,13 +13,28 @@
 
 <p align="center">
   <a href="http://8.130.190.218/"><strong>Explore Sci-Surf ↗</strong></a>
-  &nbsp;·&nbsp; Demo video: coming soon
+  &nbsp;·&nbsp;
+  <a href="https://youtu.be/lsvshRvRoo8"><strong>Watch Demo ▶</strong></a>
   &nbsp;·&nbsp; Paper: WWW '27 Demo Track submission
 </p>
 
 ---
 
 Sci-Surf helps researchers find relevant scientific papers and understand them efficiently. It turns research interests into a living intent profile, learns from feedback, and presents selected papers as approachable, multimodal digests.
+
+## 🎬 Demo Video
+
+See Sci-Surf in action, from user onboarding and research interest modeling to personalized daily recommendations, multimodal blog-style digestion, and feedback-driven personalization.
+
+<p align="center">
+  <a href="https://youtu.be/lsvshRvRoo8">
+    <img src="https://img.youtube.com/vi/lsvshRvRoo8/maxresdefault.jpg" alt="Sci-Surf System Demo" width="720">
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://youtu.be/lsvshRvRoo8"><strong>▶ Watch the full demo on YouTube</strong></a>
+</p>
 
 ## ✨ What Sci-Surf does
 
